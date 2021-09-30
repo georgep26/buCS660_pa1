@@ -282,13 +282,13 @@ public class HeapPage implements Page {
      */
     public int getNumEmptySlots() {
         // some code goes here
-        int count = 0; 
+        int numEmpty = 0; 
         for (int i = 0; i< this.getNumTuples(); i++) {
             if (!this.isSlotUsed(i)) {
-                count++;
+                numEmpty++;
             }
         }
-        return count;
+        return numEmpty;
     }
 
     /**

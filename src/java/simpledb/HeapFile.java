@@ -68,7 +68,22 @@ public class HeapFile implements DbFile {
     // see DbFile.java for javadocs
     public Page readPage(PageId pid) {
         // some code goes here
-        return null;
+        try {
+            int position = Database.getBufferPool().getPageSize()*pid.pageNumber();
+            FileInputStream fileInputStream = null;
+            byte[] bFile = new byte[(int) heapFile.length()];
+            fileInputStream = new FileInputStream(heapFile);
+            fileInputStream.read(bFile);
+            fileInputStream.close();
+            byte[] data = Arrays.copyOfRange(bFile, position, position + Database.getBufferPool().getPageSize());
+            HeapPageId heapPageId = (HeapPageId) pid;
+            return new HeapPage(heapPageId, data);
+        } catch (IOException e) {
+            return null;
+        } catch (NoSuchElementException e) {
+            return null;
+        }
+        
     }
 
     // see DbFile.java for javadocs
@@ -82,7 +97,7 @@ public class HeapFile implements DbFile {
      */
     public int numPages() {
         // some code goes here
-        return 0;
+        return (int) Math.ceil(this.heapFile.length()/Database.getBufferPool().getPageSize());
     }
 
     // see DbFile.java for javadocs
