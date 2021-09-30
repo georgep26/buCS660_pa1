@@ -1,7 +1,7 @@
 package simpledb;
 
 import java.io.*;
-
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -26,6 +26,8 @@ public class BufferPool {
     constructor instead. */
     public static final int DEFAULT_PAGES = 50;
 
+    private ArrayList<Page> pool;
+
     /**
      * Creates a BufferPool that caches up to numPages pages.
      *
@@ -33,6 +35,10 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
         // some code goes here
+        if (numPages > DEFAULT_PAGES) {
+            //throw new DbException("The number of pages is large than the default.");
+        }
+        pool = new ArrayList<Page>(numPages);
     }
     
     public static int getPageSize() {
@@ -67,7 +73,13 @@ public class BufferPool {
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
-        return null;
+        for (int i=0; i<pool.size(); i++) {
+            if (pool.get(i).getId() == pid) {
+                return pool.get(i);
+            }
+        }
+        throw new DbException("Page does not exist");
+
     }
 
     /**

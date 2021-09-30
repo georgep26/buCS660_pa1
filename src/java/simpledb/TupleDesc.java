@@ -35,6 +35,7 @@ public class TupleDesc implements Serializable {
         public String toString() {
             return fieldName + "(" + fieldType + ")";
         }
+        
     }
 
     /**
@@ -153,12 +154,24 @@ public class TupleDesc implements Serializable {
      */
     public int fieldNameToIndex(String name) throws NoSuchElementException {
         // some code goes here
-        for (int i = 0; i < numFields; i++) {
-            if (fields[i].fieldName.equals(name)) {
-                return i;
-            }
+        if (name == null) {
+            throw new NoSuchElementException("null is not a valid field name");
         }
-        throw new NoSuchElementException();
+        int nullCount = 0;
+        for (int i = 0; i < numFields; i++) {
+            if (this.getFieldName(i) == null) {
+                nullCount++;
+                continue;
+            }
+            else if (this.getFieldName(i).equals(name)) {
+                return i;
+            } 
+        }
+
+        if (nullCount == numFields) {
+            throw new NoSuchElementException("no fields are named, so you can't find it");
+        }
+        throw new NoSuchElementException(name + " is not a valid field name");
     }
 
     /**
@@ -171,7 +184,7 @@ public class TupleDesc implements Serializable {
         for (int i=0; i < numFields; i++){
             byteSize += fields[i].fieldType.getLen();
         }
-        return 0;
+        return byteSize;
     }
 
     /**
@@ -186,20 +199,20 @@ public class TupleDesc implements Serializable {
      */
     public static TupleDesc merge(TupleDesc td1, TupleDesc td2) {
         // some code goes here
-        int newLength = td1.fields.length + td2.fields.length;
+        int newLength = td1.numFields() + td2.numFields();
         Type[] newTypeArr = new Type[newLength];
         String[] newStringArr = new String[newLength];
-        for (int i=0; i<td1.fields.length; i++){
-            newTypeArr[i] = td1.fields[i].fieldType;
-            newStringArr[i] = td1.fields[i].fieldName;
+        for (int i=0; i<td1.numFields(); i++){
+            newTypeArr[i] = td1.getFieldType(i);
+            newStringArr[i] = td1.getFieldName(i);
         }
         
-        for (int i=td1.fields.length; i<td2.fields.length; i++){
-            newTypeArr[i] = td2.fields[i].fieldType;
-            newStringArr[i] = td2.fields[i].fieldName;
+        for (int j=0; j<td2.numFields(); j++){
+            newTypeArr[td1.numFields()+j] = td2.getFieldType(j);
+            newStringArr[td1.numFields()+j] = td2.getFieldName(j);
         }
         TupleDesc mergedTuple = new TupleDesc(newTypeArr, newStringArr);
-        return mergedTuple ;
+        return mergedTuple;
     }
 
     /**
@@ -213,7 +226,15 @@ public class TupleDesc implements Serializable {
      */
     public boolean equals(Object o) {
         // some code goes here
-        TupleDesc copy = (TupleDesc) o;
+        TupleDesc copy;
+        if (o == null) {
+            return false;
+        }
+        try {
+            copy = (TupleDesc) o;
+        } catch (ClassCastException e) {
+            return false;
+        }
         if (this.getSize() != copy.getSize()) {
             return false;
         }
