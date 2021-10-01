@@ -117,9 +117,79 @@ public class HeapFile implements DbFile {
     }
 
     // see DbFile.java for javadocs
-    public DbFileIterator iterator(TransactionId tid) {
+    public DbFileIterator iterator(TransactionId tid){
         // some code goes here
-        return null;
+        return new HeapFileIterator(this, tid);
+    }
+
+    private class HeapFileIterator implements DbFileIterator {
+
+        private HeapFile hfile;
+        private int numPages;
+        private TransactionId tid;
+        private int currentPageNum;
+        private Iterator<Tuple> currentIter;
+        private boolean open;
+
+        
+        public HeapFileIterator(HeapFile hfile, TransactionId tid){
+            this.hfile = hfile;
+            this.numPages = hfile.numPages();
+            this.tid = tid;
+            this.currentPageNum = 0;
+            this.currentIter = getPageIterator(currentPageNum);
+            this.open = false;          
+
+        }
+
+        public void open(){
+            open = true;
+        }
+
+        public boolean hasNext(){
+            if (open) {
+                return currentPageNum < numPages;
+            }
+            else {
+                return false;
+            }
+        }
+
+
+        public Tuple next() {
+            if (hasNext()){
+                if (currentIter.hasNext()) {
+                    Tuple result = currentIter.next();
+                    if (!currentIter.hasNext()){
+                        currentPageNum++;
+                        currentIter = getPageIterator(currentPageNum);
+                    }
+                    return result;
+                } 
+            } else {
+                throw new NoSuchElementException();
+            }
+            return null;
+        }
+
+        public void rewind(){
+
+        }
+
+        public void close(){
+            open = false;
+        }
+
+        private Iterator<Tuple> getPageIterator(int pageNum){
+            
+            HeapPageId heapPageId = new HeapPageId(hfile.getId(), pageNum);
+            //HeapPage currentPage = (HeapPage) Database.getBufferPool().getPage(tid, heapPageId, Permissions.READ_ONLY);
+            HeapPage currentPage = (HeapPage) hfile.readPage(heapPageId);
+            Iterator<Tuple> iter = currentPage.iterator();
+            return iter;
+           
+           
+        }
     }
 
 }
