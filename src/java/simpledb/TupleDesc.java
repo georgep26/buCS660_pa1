@@ -45,12 +45,7 @@ public class TupleDesc implements Serializable {
      * */
     public Iterator<TDItem> iterator() {
         // some code goes here
-        ArrayList arrList = new ArrayList();
-        for (int i=0; i < this.numFields; i++) {
-            arrList.add(this.fields[i]);
-        }
-        Iterator iter = arrList.iterator();
-        return iter;
+        return new TupleDescIterator(this);
     }
 
     private static final long serialVersionUID = 1L;
@@ -268,5 +263,29 @@ public class TupleDesc implements Serializable {
             output+=fields[i].toString() + ",";
         }
         return output;
+    }
+
+    private class TupleDescIterator implements Iterator{
+
+        private TupleDesc td;
+        private int currentItem;
+
+        public TupleDescIterator(TupleDesc td) {
+            this.td = td;
+            this.currentItem = 0;
+        }
+
+        public boolean hasNext(){
+            if (currentItem < td.numFields()){
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public TDItem next(){
+            return td.fields[currentItem++];
+
+        }
     }
 }

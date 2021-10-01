@@ -155,12 +155,7 @@ public class Catalog {
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        ArrayList arrList = new ArrayList();
-        for (int i=0; i < this.tables.size(); i++) {
-            arrList.add(this.tables.get(i).getDBFile().getId());
-        }
-        Iterator iter = arrList.iterator();
-        return iter;
+        return new CatalogIterator(this);
         
     }
 
@@ -249,6 +244,29 @@ public class Catalog {
         } catch (IndexOutOfBoundsException e) {
             System.out.println ("Invalid catalog entry : " + line);
             System.exit(0);
+        }
+    }
+
+    private class CatalogIterator implements Iterator {
+
+        private int currentTable;
+        private Catalog catalog;
+
+        public CatalogIterator(Catalog cat) {
+            this.currentTable = 0;
+            this.catalog = cat;
+        }
+
+        public boolean hasNext() {
+            if (currentTable < catalog.tables.size()) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public Integer next(){
+            return catalog.tables.get(currentTable++).getTableID();
         }
     }
 }
