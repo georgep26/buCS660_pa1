@@ -307,8 +307,6 @@ public class HeapPage implements Page {
         return ((header[headerCell] >> headerByte) & 1) == 1;
     }
 
-
-
     /**
      * Abstraction to fill or clear a slot on this page.
      */
@@ -338,11 +336,7 @@ public class HeapPage implements Page {
         }
 
         public boolean hasNext(){
-            if (currentTuple < numTuples) {
-                return true;
-            } else {
-                return false;
-            }
+            return currentTuple < numTuples;
         }
 
         public Tuple next(){
