@@ -67,7 +67,8 @@ public class HeapPage implements Page {
     */
     private int getNumTuples() {        
         // some code goes here
-        return (int) Math.floor((BufferPool.getPageSize()*8)/(td.getSize()*8 + 1));
+//        return (int) Math.floor((BufferPool.getPageSize()*8)/(td.getSize()*8 + 1));
+        return Math.floorDiv((BufferPool.getPageSize()*8), (td.getSize()*8 + 1));
 
     }
 
@@ -76,9 +77,8 @@ public class HeapPage implements Page {
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
     private int getHeaderSize() {        
-        
         // some code goes here
-        return (int) Math.ceil(getNumTuples()/8);
+        return (int) Math.ceil(getNumTuples()/8.0);
                  
     }
     
@@ -296,16 +296,18 @@ public class HeapPage implements Page {
      */
     public boolean isSlotUsed(int i) {
         // some code goes here
-        int byteNum = i / 8;
-    	int bitNum = i % 8;
-        if (byteNum >= header.length || byteNum < 0) {
-            return false;
-        }
-    	byte byteWithSlot = header[byteNum];
-    	int bitmask = 1 << bitNum;
-        return (byteWithSlot&bitmask) > 0;
-        
+        // each header cell is 1 byte - has 8 bits corresponding to 8 slots
+        int headerCell = i / 8;
+        // remainder gives which bit in the byte corresponds to that slot
+        int headerByte = i % 8;
+
+        // Shift byte in header cell by the position the bit we want is in
+        // & 1 will return 1 if the bit is 1, then we can check == 1 to get boolean
+        // 1 in binary is 0000 0001 so result of & is 1 if last bit is 1
+        return ((header[headerCell] >> headerByte) & 1) == 1;
     }
+
+
 
     /**
      * Abstraction to fill or clear a slot on this page.
