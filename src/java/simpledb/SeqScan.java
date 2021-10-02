@@ -104,7 +104,7 @@ public class SeqScan implements DbIterator {
         String[] nameArr = new String[td.numFields()];
         
         int i = 0;
-        for (Iterator<TupleDesc.TDItem> iter = td.iterator(); iter.hasNext();) {
+        for (TupleDesc.TupleDescIterator iter = td.iterator(); iter.hasNext();) {
             TupleDesc.TDItem item = iter.next();
             typeArr[i] = item.fieldType;
             nameArr[i] = tableAlias + "." + item.fieldName;

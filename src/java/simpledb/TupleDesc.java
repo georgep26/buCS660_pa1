@@ -43,7 +43,8 @@ public class TupleDesc implements Serializable {
      *        An iterator which iterates over all the field TDItems
      *        that are included in this TupleDesc
      * */
-    public Iterator<TDItem> iterator() {
+    public TupleDescIterator iterator() {
+        // changed return type to be specific to TupleDescIterator - avoid unchecked conversion warning
         // some code goes here
         return new TupleDescIterator(this);
     }
@@ -265,7 +266,7 @@ public class TupleDesc implements Serializable {
         return output;
     }
 
-    private class TupleDescIterator implements Iterator{
+    protected class TupleDescIterator implements Iterator{
 
         private TupleDesc td;
         private int currentItem;

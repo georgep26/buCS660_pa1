@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The Catalog keeps track of all available tables in the database and their
@@ -153,7 +152,7 @@ public class Catalog {
         throw new NoSuchElementException();
     }
 
-    public Iterator<Integer> tableIdIterator() {
+    public CatalogIterator tableIdIterator() {
         // some code goes here
         return new CatalogIterator(this);
         
