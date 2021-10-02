@@ -276,11 +276,7 @@ public class TupleDesc implements Serializable {
         }
 
         public boolean hasNext(){
-            if (currentItem < td.numFields()){
-                return true;
-            } else {
-                return false;
-            }
+            return currentItem < td.numFields();
         }
 
         public TDItem next(){
