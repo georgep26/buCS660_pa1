@@ -106,13 +106,8 @@ public class Tuple implements Serializable {
      * */
     public Iterator<Field> fields()
     {
-        // some code goes here
-        ArrayList arrList = new ArrayList();
-        for (int i=0; i < this.fields.length; i++) {
-            arrList.add(this.fields[i]);
-        }
-        Iterator iter = arrList.iterator();
-        return iter;
+        ArrayList<Field> list = new ArrayList<Field>(Arrays.asList(fields));
+        return list.iterator();
     }
 
     /**
