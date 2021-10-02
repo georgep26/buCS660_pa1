@@ -1,5 +1,6 @@
 package simpledb;
 
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.util.*;
 
@@ -71,8 +72,8 @@ public class HeapFile implements DbFile {
         try {
             int position = Database.getBufferPool().getPageSize()*pid.pageNumber();
             FileInputStream fileInputStream = null;
-//            byte[] bFile = new byte[(int) heapFile.length()];
             byte[] bFile = new byte[(int) heapFile.length()];
+//            byte[] bFile = new byte[(int) BufferPool.getPageSize()];
             fileInputStream = new FileInputStream(heapFile);
             fileInputStream.read(bFile);
             fileInputStream.close();
@@ -152,11 +153,29 @@ public class HeapFile implements DbFile {
         }
 
         public boolean hasNext(){
+//            System.out.println("HAS NEXT: " + currentIter.hasNext());
             if (open) {
-                return (currentPageNum < numPages);
-//                return (currentIter.hasNext());
-            }
-            else {
+//                return (currentPageNum < numPages);
+                if (currentIter.hasNext()) {
+                    return true;
+                }
+                else if (currentPageNum < numPages) {
+                    currentPageNum++;
+                    if (currentPageNum != numPages) {
+//                    System.out.println("REACHED NEW ITER" + currentPageNum + " " + numPages);
+//                    newIterNeeded = true;
+                        currentIter = getPageIterator(currentPageNum);
+                        System.out.println("NEW PAGE " + currentPageNum + " of " + numPages);
+//                    newIterNeeded = false;
+//                    return true;
+                        return currentIter.hasNext();
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            } else {
                 return false;
             }
         }
@@ -165,23 +184,23 @@ public class HeapFile implements DbFile {
             // I think issue is hasnext and next should be based on tuple iterator
 
             // needed to break this out of below if statement so we dont read the next page before necessary
-            if (newIterNeeded)
-                currentIter = getPageIterator(currentPageNum);
-                newIterNeeded = false;
+//            System.out.println("iter needed " + newIterNeeded);
+//            if (newIterNeeded) {
+//                currentPageNum++;
+//                currentIter = getPageIterator(currentPageNum);
+//                System.out.println("NEW PAGE " + currentPageNum + " of " + numPages);
+//                newIterNeeded = false;
+//            }
 
-            if (hasNext()){
-                if (currentIter.hasNext()) {
-                    Tuple result = currentIter.next();
-                    if (!currentIter.hasNext()){ // next next
-                        currentPageNum++;
-                        newIterNeeded = true;
-                    }
-                    return result;
-                }
+            if (hasNext()) {
+                Tuple result = currentIter.next();
+                return result;
             } else {
+//                System.out.println(currentIter.hasNext());
+//                System.out.println(currentPageNum);
+//                System.out.println(numPages);
                 throw new NoSuchElementException();
             }
-            return null;
         }
 
         public void rewind(){
