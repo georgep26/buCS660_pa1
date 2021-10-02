@@ -2,7 +2,8 @@ package simpledb;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -70,15 +71,21 @@ public class BufferPool {
      * @param pid the ID of the requested page
      * @param perm the requested permissions on the page
      */
-    public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
+    public Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
         for (int i=0; i<pool.size(); i++) {
-            if (pool.get(i).getId() == pid) {
+            if (pool.get(i).getId().equals(pid)) {
                 return pool.get(i);
             }
         }
-        throw new DbException("Page does not exist");
+
+        DbFile file = Database.getCatalog().getDatabaseFile(pid.getTableId());
+        Page newPage = file.readPage(pid);
+        pool.add(newPage);
+        return newPage;
+
+//        throw new DbException("Page does not exist");
 
     }
 

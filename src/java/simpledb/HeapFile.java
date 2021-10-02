@@ -71,6 +71,7 @@ public class HeapFile implements DbFile {
         try {
             int position = Database.getBufferPool().getPageSize()*pid.pageNumber();
             FileInputStream fileInputStream = null;
+//            byte[] bFile = new byte[(int) heapFile.length()];
             byte[] bFile = new byte[(int) heapFile.length()];
             fileInputStream = new FileInputStream(heapFile);
             fileInputStream.read(bFile);
@@ -129,16 +130,20 @@ public class HeapFile implements DbFile {
         private TransactionId tid;
         private int currentPageNum;
         private Iterator<Tuple> currentIter;
+        private boolean newIterNeeded;
+
+        // TODO Matt had int and set at -1 when open instead
         private boolean open;
 
-        
+
         public HeapFileIterator(HeapFile hfile, TransactionId tid){
             this.hfile = hfile;
             this.numPages = hfile.numPages();
             this.tid = tid;
             this.currentPageNum = 0;
             this.currentIter = getPageIterator(currentPageNum);
-            this.open = false;          
+            this.open = false;
+            this.newIterNeeded = false;
 
         }
 
@@ -148,24 +153,31 @@ public class HeapFile implements DbFile {
 
         public boolean hasNext(){
             if (open) {
-                return currentPageNum < numPages;
+                return (currentPageNum < numPages);
+//                return (currentIter.hasNext());
             }
             else {
                 return false;
             }
         }
 
-
         public Tuple next() {
+            // I think issue is hasnext and next should be based on tuple iterator
+
+            // needed to break this out of below if statement so we dont read the next page before necessary
+            if (newIterNeeded)
+                currentIter = getPageIterator(currentPageNum);
+                newIterNeeded = false;
+
             if (hasNext()){
                 if (currentIter.hasNext()) {
                     Tuple result = currentIter.next();
-                    if (!currentIter.hasNext()){
+                    if (!currentIter.hasNext()){ // next next
                         currentPageNum++;
-                        currentIter = getPageIterator(currentPageNum);
+                        newIterNeeded = true;
                     }
                     return result;
-                } 
+                }
             } else {
                 throw new NoSuchElementException();
             }
@@ -183,8 +195,15 @@ public class HeapFile implements DbFile {
         private Iterator<Tuple> getPageIterator(int pageNum){
             
             HeapPageId heapPageId = new HeapPageId(hfile.getId(), pageNum);
-            //HeapPage currentPage = (HeapPage) Database.getBufferPool().getPage(tid, heapPageId, Permissions.READ_ONLY);
-            HeapPage currentPage = (HeapPage) hfile.readPage(heapPageId);
+            HeapPage currentPage = null;
+            try {
+                currentPage = (HeapPage) Database.getBufferPool().getPage(tid, heapPageId, Permissions.READ_ONLY);
+            } catch (TransactionAbortedException e) {
+                e.printStackTrace();
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+//            HeapPage currentPage = (HeapPage) hfile.readPage(heapPageId);
             Iterator<Tuple> iter = currentPage.iterator();
             return iter;
            
